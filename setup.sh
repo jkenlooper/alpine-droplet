@@ -19,14 +19,42 @@ rc-update add net.lo boot
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
+# Other vendor metadata sources are listed here from cloudinit docs
+# https://cloudinit.readthedocs.io/en/latest/topics/datasources.html
+
 # Grab config from DigitalOcean metadata service
 cat > /bin/do-init <<-EOF
 #!/bin/sh
 resize2fs /dev/vda
+
+# https://docs.digitalocean.com/reference/api/metadata-api/
 wget -T 5 http://169.254.169.254/metadata/v1/hostname    -q -O /etc/hostname
 wget -T 5 http://169.254.169.254/metadata/v1/public-keys -q -O /root/.ssh/authorized_keys
+wget -T 5 http://169.254.169.254/metadata/v1/user-data   -q -O /root/user-data
+wget -T 5 http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address -q -O /root/public-ipv4-address
+
+# Reject any future use of the metadata service.
+# https://github.com/canonical/cloud-init/blob/main/cloudinit/config/cc_disable_ec2_metadata.py#L18
+ip route add prohibit 169.254.169.254
+
 hostname -F /etc/hostname
 chmod 600 /root/.ssh/authorized_keys
+
+# Only execute user-data if it has a shebang.
+if [ -f /root/user-data ]; then
+  if IFS= read -r line < /root/user-data; then
+    case $line in
+      ("#!"*) chmod +x /root/user-data
+    esac
+  fi
+  if [ -x /root/user-data ]; then
+    /root/user-data
+    # Clean up user-data in case it has sensitive content
+    shred -fu /root/user-data || rm -f /root/user-data
+  fi
+fi
+
+# The do-init is a one off, so delete it after it runs
 rc-update del do-init default
 exit 0
 EOF
