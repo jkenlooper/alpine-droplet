@@ -40,12 +40,11 @@ ip route add prohibit 169.254.169.254
 hostname -F /etc/hostname
 chmod 600 /root/.ssh/authorized_keys
 
-# Only execute user-data if it has a shebang.
+# Only execute user-data if first line has a shebang.
 if [ -f /root/user-data ]; then
-  if IFS= read -r line < /root/user-data; then
-    case $line in
-      ("#!"*) chmod +x /root/user-data
-    esac
+  has_shebang="$(awk 'NR==1 && /^#!/' /root/user-data)"
+  if [ -n "$has_shebang" ]; then
+    chmod +x /root/user-data
   fi
   if [ -x /root/user-data ]; then
     /root/user-data
