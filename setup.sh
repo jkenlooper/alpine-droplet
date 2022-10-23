@@ -23,7 +23,7 @@ chmod 700 /root/.ssh
 # https://cloudinit.readthedocs.io/en/latest/topics/datasources.html
 
 # Grab config from DigitalOcean metadata service
-cat > /bin/do-init <<-EOF
+cat > /bin/do-init <<-'EOF'
 #!/bin/sh
 resize2fs /dev/vda
 
@@ -38,18 +38,19 @@ wget -T 5 http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address -q
 ip route add prohibit 169.254.169.254
 
 hostname -F /etc/hostname
-chmod 600 /root/.ssh/authorized_keys
+chmod 0600 /root/.ssh/authorized_keys
 
 # Only execute user-data if first line has a shebang.
 if [ -f /root/user-data ]; then
+  chmod 0400 /root/user-data
   has_shebang="$(awk 'NR==1 && /^#!/' /root/user-data)"
   if [ -n "$has_shebang" ]; then
-    chmod +x /root/user-data
+    chmod 0500 /root/user-data
   fi
   if [ -x /root/user-data ]; then
     /root/user-data
     # Clean up user-data in case it has sensitive content
-    shred -fu /root/user-data || rm -f /root/user-data
+    shred -fuz /root/user-data || rm -f /root/user-data
   fi
 fi
 
