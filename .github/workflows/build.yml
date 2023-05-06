@@ -17,6 +17,9 @@ jobs:
         with:
           submodules: true
 
+      - name: Update
+        run: sudo apt update
+
       - name: Install dependencies
         run: sudo apt install qemu-utils bzip2
 
