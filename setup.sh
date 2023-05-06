@@ -54,8 +54,10 @@ if [ -f /root/user-data ]; then
   fi
 fi
 
-# The do-init is a one off, so delete it after it runs
+# The do-init is a one off, so delete and zap it after it runs.
 rc-update del do-init default
+openrc
+rc-service do-init zap
 exit 0
 EOF
 
