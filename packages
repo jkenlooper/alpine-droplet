@@ -1,0 +1,8 @@
+chrony
+doas
+doas-sudo-shim
+e2fsprogs-extra
+less
+logrotate
+openssh
+ssmtp
