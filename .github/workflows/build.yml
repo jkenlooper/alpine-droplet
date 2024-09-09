@@ -5,9 +5,12 @@ permissions:
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    #branches: [ master ]
+    tags:
+      # temporary
+      - 2024*
+  #pull_request:
+  #  branches: [ master ]
 
 jobs:
   build:
